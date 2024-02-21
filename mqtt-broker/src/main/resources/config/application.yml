@@ -1,0 +1,87 @@
+spring:
+  profiles:
+    active: dev
+---
+
+# 开发环境配置
+spring:
+  profiles: dev
+  datasource:
+#    driver-class-name: org.postgresql.Driver
+    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://39.108.93.27:3306/airTest?useUnicode=true&characterEncoding=utf-8&useSSL=false
+#    password: '!Micerlabs2020'
+#    username: root
+    url: jdbc:mysql://127.0.0.1:3306/data_integration?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    password: 'root'
+    username: root
+#    url: jdbc:postgresql://127.0.0.1:5432/airTest
+#    password: '!Micerlabs2020'
+#    username: postgres
+  main:
+    allow-bean-definition-overriding: true
+  mqtt:
+    broker:
+      # broker唯一标识
+      id: mqttbroker1
+      # SSL端口
+      ssl-port: 8885
+      # SSL密钥文件密码
+      ssl-password: 123456SS
+      # websocket端口
+      websocket-ssl-port: 9995
+      # websocket path 值
+      websocket-path: /mqtt
+      # 心跳时间(秒)
+      keep-alive: 60
+      # 开启Epoll模式, linux下建议开启
+      use-epoll: false
+      # 开启组播方式集群
+      enable-multicast-group: true
+      # 组播地址
+      multicast-group: 239.255.255.255
+      cache:
+        # 持久化缓存内存初始化大小(MB)
+        persistence-initial-size: 64
+        # 持久化缓存占用内存最大值(MB)
+        persistence-max-size: 128
+        # 非持久化缓存内存初始化大小(MB)
+        not-persistence-initial-size: 64
+        # 非持久化缓存占用内存最大值(MB)
+        not-persistence-max-size: 128
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    producer:
+      retries: 1
+      acks: 1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+mybatis:
+  type-aliases-package: com.micerlab.iot.mqtt.server.store.bean          # 所有POJO类所在包路径
+  mapper-locations: classpath:mapper/*.xml      # mapper映射文件
+server:
+  port: 8333
+---
+## 生产环境
+#spring:
+#  profiles: prod
+#  mqtt:
+#    broker:
+#      id: mqtt-broker-1
+#      ssl-password: 123456
+#      use-epoll: true
+#      enable-multicast-group: false
+#      # 静态IP方式集群
+#      static-ip-addresses: 192.168.1.240, 192.168.1.241
+#      cache:
+#        persistence-initial-size: 64
+#        persistence-max-size: 128
+#        not-persistence-initial-size: 64
+#        not-persistence-max-size: 128
+#          # 持久化磁盘存储路径
+#        persistence-store-path: /opt/mqtt-broker/persistence
+
+
+
+

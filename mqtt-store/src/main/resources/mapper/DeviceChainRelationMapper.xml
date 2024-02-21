@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.micerlab.iot.mqtt.server.store.mapper.DeviceChainRelationMapper">
+  <resultMap id="BaseResultMap" type="com.micerlab.iot.mqtt.server.store.bean.DeviceChainRelation">
+    <!--@mbg.generated-->
+    <!--@Table device_chain_relation-->
+    <id column="data_id" jdbcType="VARCHAR" property="deviceId" />
+    <result column="rule_id" jdbcType="VARCHAR" property="ruleId" />
+    <result column="topic" jdbcType="VARCHAR" property="topic" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    data_id, rule_id, topic
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from device_chain_relation
+    where data_id = #{deviceId,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    <!--@mbg.generated-->
+    delete from device_chain_relation
+    where data_id = #{deviceId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.micerlab.iot.mqtt.server.store.bean.DeviceChainRelation">
+    <!--@mbg.generated-->
+    insert into device_chain_relation (data_id, rule_id, topic
+      )
+    values (#{deviceId,jdbcType=VARCHAR}, #{ruleId,jdbcType=VARCHAR}, #{topic,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.micerlab.iot.mqtt.server.store.bean.DeviceChainRelation">
+    <!--@mbg.generated-->
+    insert into device_chain_relation
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="deviceId != null">
+        data_id,
+      </if>
+      <if test="ruleId != null">
+        rule_id,
+      </if>
+      <if test="topic != null">
+        topic,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="deviceId != null">
+        #{deviceId,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleId != null">
+        #{ruleId,jdbcType=VARCHAR},
+      </if>
+      <if test="topic != null">
+        #{topic,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.micerlab.iot.mqtt.server.store.bean.DeviceChainRelation">
+    <!--@mbg.generated-->
+    update device_chain_relation
+    <set>
+      <if test="ruleId != null">
+        rule_id = #{ruleId,jdbcType=VARCHAR},
+      </if>
+      <if test="topic != null">
+        topic = #{topic,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where data_id = #{deviceId,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.micerlab.iot.mqtt.server.store.bean.DeviceChainRelation">
+    <!--@mbg.generated-->
+    update device_chain_relation
+    set rule_id = #{ruleId,jdbcType=VARCHAR},
+      topic = #{topic,jdbcType=VARCHAR}
+    where data_id = #{deviceId,jdbcType=VARCHAR}
+  </update>
+</mapper>
