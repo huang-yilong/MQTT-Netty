@@ -7,31 +7,44 @@ package com.micerlab.iot.mqtt.server.broker.protocol;
 import com.micerlab.iot.mqtt.server.common.message.IDupPubRelMessageStoreService;
 import com.micerlab.iot.mqtt.server.common.message.IMessageIdService;
 import io.netty.channel.Channel;
+import io.netty.handler.codec.mqtt.MqttMessage;
 import io.netty.handler.codec.mqtt.MqttMessageIdVariableHeader;
+import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.util.AttributeKey;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * PUBCOMP连接处理
  */
-public class PubComp {
+@Component
+public class PubComp implements Message {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PubComp.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PubComp.class);
 
-	private IMessageIdService messageIdService;
+    @Autowired
+    private IMessageIdService messageIdService;
 
-	private IDupPubRelMessageStoreService dupPubRelMessageStoreService;
+    @Autowired
+    private IDupPubRelMessageStoreService dupPubRelMessageStoreService;
 
-	public PubComp(IMessageIdService messageIdService, IDupPubRelMessageStoreService dupPubRelMessageStoreService) {
-		this.messageIdService = messageIdService;
-		this.dupPubRelMessageStoreService = dupPubRelMessageStoreService;
-	}
+    @Override
+    public void process(Channel channel, MqttMessage mqttMessage) {
+        MqttMessageIdVariableHeader variableHeader = (MqttMessageIdVariableHeader) mqttMessage.variableHeader();
+        int messageId = variableHeader.messageId();
+        LOGGER.debug("PUBCOMP - clientId: {}, messageId: {}", (String) channel.attr(AttributeKey.valueOf("clientId")).get(), messageId);
+        dupPubRelMessageStoreService.remove((String) channel.attr(AttributeKey.valueOf("clientId")).get(), variableHeader.messageId());
+        messageIdService.releaseMessageId(messageId);
+    }
 
-	public void processPubComp(Channel channel, MqttMessageIdVariableHeader variableHeader) {
-		int messageId = variableHeader.messageId();
-		LOGGER.debug("PUBCOMP - clientId: {}, messageId: {}", (String) channel.attr(AttributeKey.valueOf("clientId")).get(), messageId);
-		dupPubRelMessageStoreService.remove((String) channel.attr(AttributeKey.valueOf("clientId")).get(), variableHeader.messageId());
-		messageIdService.releaseMessageId(messageId);
-	}
+    @Override
+    public List<MqttMessageType> getMqttMessageTypes() {
+        return Arrays.asList(MqttMessageType.PUBCOMP);
+    }
 }

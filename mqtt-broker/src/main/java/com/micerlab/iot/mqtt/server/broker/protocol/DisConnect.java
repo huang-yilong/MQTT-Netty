@@ -11,44 +11,55 @@ import com.micerlab.iot.mqtt.server.common.session.SessionStore;
 import com.micerlab.iot.mqtt.server.common.subscribe.ISubscribeStoreService;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import io.netty.handler.codec.mqtt.MqttMessageType;
 import io.netty.util.AttributeKey;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
  * DISCONNECT连接处理
  */
-public class DisConnect {
+@Component
+public class DisConnect implements Message {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DisConnect.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DisConnect.class);
 
-	private ISessionStoreService sessionStoreService;
+    @Autowired
+    private ISessionStoreService sessionStoreService;
 
-	private ISubscribeStoreService subscribeStoreService;
+    @Autowired
+    private ISubscribeStoreService subscribeStoreService;
 
-	private IDupPublishMessageStoreService dupPublishMessageStoreService;
+    @Autowired
+    private IDupPublishMessageStoreService dupPublishMessageStoreService;
 
-	private IDupPubRelMessageStoreService dupPubRelMessageStoreService;
+    @Autowired
+    private IDupPubRelMessageStoreService dupPubRelMessageStoreService;
 
-	public DisConnect(ISessionStoreService sessionStoreService, ISubscribeStoreService subscribeStoreService, IDupPublishMessageStoreService dupPublishMessageStoreService, IDupPubRelMessageStoreService dupPubRelMessageStoreService) {
-		this.sessionStoreService = sessionStoreService;
-		this.subscribeStoreService = subscribeStoreService;
-		this.dupPublishMessageStoreService = dupPublishMessageStoreService;
-		this.dupPubRelMessageStoreService = dupPubRelMessageStoreService;
-	}
+    @Override
+    public void process(Channel channel, MqttMessage msg) {
+        String clientId = (String) channel.attr(AttributeKey.valueOf("clientId")).get();
+        SessionStore sessionStore = sessionStoreService.get(clientId);
+        if (sessionStore.isCleanSession()) {
+            subscribeStoreService.removeForClient(clientId);
+            dupPublishMessageStoreService.removeByClient(clientId);
+            dupPubRelMessageStoreService.removeByClient(clientId);
+        }
+        LOGGER.debug("DISCONNECT - clientId: {}, cleanSession: {}", clientId, sessionStore.isCleanSession());
+        sessionStoreService.remove(clientId);
+        channel.close();
+    }
 
-	public void processDisConnect(Channel channel, MqttMessage msg) {
-		String clientId = (String) channel.attr(AttributeKey.valueOf("clientId")).get();
-		SessionStore sessionStore = sessionStoreService.get(clientId);
-		if (sessionStore.isCleanSession()) {
-			subscribeStoreService.removeForClient(clientId);
-			dupPublishMessageStoreService.removeByClient(clientId);
-			dupPubRelMessageStoreService.removeByClient(clientId);
-		}
-		LOGGER.debug("DISCONNECT - clientId: {}, cleanSession: {}", clientId, sessionStore.isCleanSession());
-		sessionStoreService.remove(clientId);
-		channel.close();
-	}
+    @Override
+    public List<MqttMessageType> getMqttMessageTypes() {
+        return Arrays.asList(MqttMessageType.DISCONNECT);
+    }
 
 }

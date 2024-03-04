@@ -28,15 +28,18 @@ import io.netty.handler.codec.mqtt.MqttPubAckMessage;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
 import io.netty.handler.codec.mqtt.MqttPublishVariableHeader;
 import io.netty.handler.codec.mqtt.MqttQoS;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
 
 
 import java.util.*;
@@ -46,34 +49,46 @@ import java.util.concurrent.ExecutionException;
 /**
  * PUBLISH连接处理
  */
-@Builder
+@Component
 @Slf4j
-public class Publish {
+public class Publish implements Message {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Publish.class);
 
+    @Autowired
     private ISessionStoreService sessionStoreService;
 
+    @Autowired
     private ISubscribeStoreService subscribeStoreService;
 
+    @Autowired
     private IMessageIdService messageIdService;
 
+    @Autowired
     private IRetainMessageStoreService retainMessageStoreService;
 
+    @Autowired
     private IDupPublishMessageStoreService dupPublishMessageStoreService;
 
+    @Autowired
     private InternalCommunication internalCommunication;
 
+    @Autowired
     private KafkaTemplate<String, String> template;
 
+    @Autowired
     private AdminClient adminClient;
 
+    @Autowired
     private DeviceChainRelationMapper deviceChainRelationMapper;
 
+    @Autowired
     private RestTemplate restTemplate;
 
     //FIXME 如何确保消息发送可靠性，暂定使用kafka
-    public void processPublish(Channel channel, MqttPublishMessage msg) {
+    @Override
+    public void process(Channel channel, MqttMessage mqttMessage) {
+        MqttPublishMessage msg = (MqttPublishMessage) mqttMessage;
         try {
             byte[] messageBytes = new byte[msg.payload().readableBytes()];
             msg.payload().getBytes(msg.payload().readerIndex(), messageBytes);
@@ -162,6 +177,11 @@ public class Publish {
                 retainMessageStoreService.put(msg.variableHeader().topicName(), retainMessageStore);
             }
         }
+    }
+
+    @Override
+    public List<MqttMessageType> getMqttMessageTypes() {
+        return Arrays.asList(MqttMessageType.PUBLISH);
     }
 
     /**
